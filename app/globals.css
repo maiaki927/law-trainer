@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+  }
+  * {
+    border-color: hsl(var(--border));
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px; /* prevent iOS zoom */
+  }
+}
+
+@layer components {
+  .prose-law p {
+    margin: 0.5rem 0;
+  }
+  .prose-law ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+  }
+  .prose-law ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+  }
+  .prose-law a {
+    color: hsl(220 90% 45%);
+    text-decoration: underline;
+    word-break: break-word;
+  }
+  .prose-law table {
+    border-collapse: collapse;
+    margin: 0.5rem 0;
+    font-size: 0.95em;
+  }
+  .prose-law th,
+  .prose-law td {
+    border: 1px solid hsl(var(--border));
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+  }
+  .prose-law code {
+    background: hsl(var(--muted));
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+  }
+}
