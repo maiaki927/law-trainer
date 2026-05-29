@@ -7,9 +7,17 @@ data/*.sqlite
 data/*.sqlite-journal
 data/*.sqlite-wal
 data/*.sqlite-shm
+data/*.bak*
 .DS_Store
 *.log
+tsconfig.tsbuildinfo
 
 # review / QA scratch files (not part of app)
 QA-*.md
 MINIRTS-V11-BUGS.md
+CRIMINAL-FIX-LOG.md
+CRIMINAL-SEED-SYNC-LOG.md
+CRIMINAL-CITATIONS-VERIFY.md
+GEMINI-QA-REPORT.md
+scripts/fix-criminal-qa.ts
+scripts/rewrite-criminal-options.ts

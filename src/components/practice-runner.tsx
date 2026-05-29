@@ -32,6 +32,9 @@ interface Props {
   mode: string;
   questions: PracticeQuestion[];
   isLoggedIn: boolean;
+  // 科目 (subject) 標識 — 用於 breadcrumb / exit href，預設 civil 以保持既有呼叫端不破壞
+  subjectSlug?: string;
+  subjectName?: string;
   // 跨章節模式：自訂結束頁、回到指定路徑、隱藏 breadcrumb 中的章節
   exitHref?: string;
   exitLabel?: string;
@@ -48,6 +51,8 @@ export function PracticeRunner({
   mode,
   questions,
   isLoggedIn,
+  subjectSlug = "civil",
+  subjectName = "民法",
   exitHref,
   exitLabel,
   finishedLabel,
@@ -241,7 +246,7 @@ export function PracticeRunner({
         <div>
           <p className="text-sm text-muted-foreground">
             <Link href="/" className="hover:underline">首頁</Link> /{" "}
-            <Link href="/subjects/civil" className="hover:underline">民法</Link>
+            <Link href={`/subjects/${subjectSlug}`} className="hover:underline">{subjectName}</Link>
             {hideTopicBreadcrumb ? (
               <> / 練習 ({mode})</>
             ) : (
@@ -249,7 +254,7 @@ export function PracticeRunner({
                 {" "}
                 /{" "}
                 <Link
-                  href={`/subjects/civil/${topicSlug}`}
+                  href={`/subjects/${subjectSlug}/${topicSlug}`}
                   className="hover:underline"
                 >
                   {topicName}
@@ -460,11 +465,11 @@ export function PracticeRunner({
                 {idx < questions.length - 1 ? (
                   <Button onClick={next}>下一題</Button>
                 ) : (
-                  <Link href={exitHref ?? `/subjects/civil/${topicSlug}`}>
+                  <Link href={exitHref ?? `/subjects/${subjectSlug}/${topicSlug}`}>
                     <Button>{exitLabel ?? "結束練習"}</Button>
                   </Link>
                 )}
-                <Link href={exitHref ?? `/subjects/civil/${topicSlug}`}>
+                <Link href={exitHref ?? `/subjects/${subjectSlug}/${topicSlug}`}>
                   <Button variant="ghost">中止</Button>
                 </Link>
               </div>
