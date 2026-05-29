@@ -77,6 +77,8 @@ export const questions = sqliteTable("questions", {
   correctAnswerJson: text("correct_answer_json"),
   explanationMd: text("explanation_md").notNull(),
   referencesJson: text("references_json"),
+  // 外部來源案例 backlink（如 47c case ID + 講次 + 簡短摘要），SQLite 無 jsonb，以 text 存 JSON 字串
+  casesJson: text("cases_json"),
   difficulty: integer("difficulty").notNull().default(3),
   source: text("source"),
   status: text("status", { enum: ["draft", "published", "archived"] })
