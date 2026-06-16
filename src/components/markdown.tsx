@@ -20,7 +20,7 @@ export function Markdown({ children, className, subject = "civil" }: Props) {
   return (
     <div className={cn("prose-law", className)}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkLawLink(subject)]}
+        remarkPlugins={[remarkGfm, [remarkLawLink, subject]]}
         components={{
           a: ({ href, children, ...rest }) => (
             <a
