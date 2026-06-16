@@ -5,6 +5,7 @@ import { db } from "@/lib/db/client";
 import {
   questions,
   savedQuestions,
+  subjects,
   topics,
 } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
@@ -36,12 +37,13 @@ export default async function SavedAllPracticePage() {
     );
   }
 
-  // 拉題目 + topic，按 topic.orderIdx、question.createdAt 排序
+  // 拉題目 + topic + subject，按 topic.orderIdx、question.createdAt 排序
   const qs = await db
     .select({
       id: questions.id,
       topicId: questions.topicId,
       topicSlug: topics.slug,
+      subjectSlug: subjects.slug,
       type: questions.type,
       questionMd: questions.questionMd,
       optionsJson: questions.optionsJson,
@@ -56,6 +58,7 @@ export default async function SavedAllPracticePage() {
     })
     .from(questions)
     .innerJoin(topics, eq(questions.topicId, topics.id))
+    .innerJoin(subjects, eq(topics.subjectId, subjects.id))
     .where(
       and(
         eq(questions.status, "published"),
@@ -95,6 +98,9 @@ export default async function SavedAllPracticePage() {
       : [],
     difficulty: q.difficulty,
     source: q.source,
+    subjectSlug: (q.subjectSlug === "criminal" ? "criminal" : "civil") as
+      | "civil"
+      | "criminal",
   }));
 
   // 全部都是已收藏 → 預先把 saved set 全填入，避免 client 再 fetch

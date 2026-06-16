@@ -140,6 +140,8 @@ export default async function PracticePage({ params, searchParams }: Params) {
     <PracticeRunner
       topicName={topic.nameZh}
       topicSlug={topicSlug}
+      subjectSlug="civil"
+      subjectName="民法"
       mode={mode}
       questions={payload}
       isLoggedIn={!!session?.user?.id}

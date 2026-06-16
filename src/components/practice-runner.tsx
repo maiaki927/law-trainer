@@ -24,6 +24,8 @@ export interface PracticeQuestion {
   references: { label: string; url: string }[];
   difficulty: number;
   source: string | null;
+  // 每題自帶 subject — 跨章節練習頁需要 per-question subject 才能 auto-link §X 到對的 Pcode
+  subjectSlug?: "civil" | "criminal";
 }
 
 interface Props {
@@ -315,7 +317,9 @@ export function PracticeRunner({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Markdown>{q.questionMd}</Markdown>
+          <Markdown subject={(q.subjectSlug ?? (subjectSlug === "criminal" ? "criminal" : "civil"))}>
+            {q.questionMd}
+          </Markdown>
 
           {q.type === "choice" && (
             <RadioGroup
@@ -437,7 +441,9 @@ export function PracticeRunner({
                 <h3 className="mb-2 font-semibold">
                   {q.type === "essay" ? "答案範本與詳解" : "詳解"}
                 </h3>
-                <Markdown>{q.explanationMd}</Markdown>
+                <Markdown subject={(q.subjectSlug ?? (subjectSlug === "criminal" ? "criminal" : "civil"))}>
+                  {q.explanationMd}
+                </Markdown>
               </div>
               {q.references.length > 0 && (
                 <div>

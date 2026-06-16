@@ -6,6 +6,8 @@ import type { Root, Text, PhrasingContent } from "mdast";
 const CIVIL_PCODE = "B0000001";
 const CRIMINAL_PCODE = "C0000001";
 
+export type LawSubject = "civil" | "criminal";
+
 const lawSingleUrl = (pcode: string, flno: string) =>
   `https://law.moj.gov.tw/LawClass/LawSingle.aspx?Pcode=${pcode}&FLNO=${flno}`;
 
@@ -22,8 +24,9 @@ interface MatchHit {
   label: string;
 }
 
-function findHits(text: string): MatchHit[] {
+function findHits(text: string, subject: LawSubject): MatchHit[] {
   const hits: MatchHit[] = [];
+  const subjectDefaultPcode = subject === "criminal" ? CRIMINAL_PCODE : CIVIL_PCODE;
 
   // 民法第 X 條 (含 -N)
   const civilArt = /民法第\s*(\d+(?:-\d+)?)\s*條/g;
@@ -49,7 +52,7 @@ function findHits(text: string): MatchHit[] {
     });
   }
 
-  // §X — default 民法 context
+  // §X — Pcode 由 subject context 決定（criminal → 刑法 / civil → 民法）
   const para = /§\s*(\d+(?:-\d+)?)/g;
   for (const m of text.matchAll(para)) {
     if (m.index === undefined) continue;
@@ -61,7 +64,7 @@ function findHits(text: string): MatchHit[] {
     hits.push({
       start: m.index,
       end: m.index + m[0].length,
-      url: lawSingleUrl(CIVIL_PCODE, m[1]),
+      url: lawSingleUrl(subjectDefaultPcode, m[1]),
       label: m[0],
     });
   }
@@ -103,14 +106,14 @@ function findHits(text: string): MatchHit[] {
   return filtered;
 }
 
-export function remarkLawLink() {
+export function remarkLawLink(subject: LawSubject = "civil") {
   return (tree: Root) => {
     visit(tree, "text", (node: Text, index, parent) => {
       if (!parent || index === undefined) return;
       // 已經在 link 內就跳過，避免巢狀
       if (parent.type === "link") return;
 
-      const hits = findHits(node.value);
+      const hits = findHits(node.value, subject);
       if (hits.length === 0) return;
 
       const newNodes: PhrasingContent[] = [];
