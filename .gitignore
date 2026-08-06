@@ -19,5 +19,7 @@ CRIMINAL-FIX-LOG.md
 CRIMINAL-SEED-SYNC-LOG.md
 CRIMINAL-CITATIONS-VERIFY.md
 GEMINI-QA-REPORT.md
+47C-VS-LAWTRAINER-GAP.md
+47C-PHASE2-AUDIT.md
 scripts/fix-criminal-qa.ts
 scripts/rewrite-criminal-options.ts

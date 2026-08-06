@@ -7,6 +7,7 @@ import {
   dismissedQuestions,
   questions,
   savedQuestions,
+  subjects,
   topics,
 } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
@@ -44,12 +45,13 @@ export default async function WrongAllPracticePage() {
     );
   }
 
-  // 拉題目 + topic，按 topic.orderIdx, question.createdAt 排序
+  // 拉題目 + topic + subject，按 topic.orderIdx, question.createdAt 排序
   const qs = await db
     .select({
       id: questions.id,
       topicId: questions.topicId,
       topicSlug: topics.slug,
+      subjectSlug: subjects.slug,
       type: questions.type,
       questionMd: questions.questionMd,
       optionsJson: questions.optionsJson,
@@ -64,6 +66,7 @@ export default async function WrongAllPracticePage() {
     })
     .from(questions)
     .innerJoin(topics, eq(questions.topicId, topics.id))
+    .innerJoin(subjects, eq(topics.subjectId, subjects.id))
     .where(
       and(
         eq(questions.status, "published"),
@@ -103,6 +106,9 @@ export default async function WrongAllPracticePage() {
       : [],
     difficulty: q.difficulty,
     source: q.source,
+    subjectSlug: (q.subjectSlug === "criminal" ? "criminal" : "civil") as
+      | "civil"
+      | "criminal",
   }));
 
   // 預先把該 user 收藏中、且出現在這頁的題目 id 算出來給 runner

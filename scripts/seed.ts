@@ -69,6 +69,12 @@ async function upsertTopic(
   }))!;
 }
 
+interface QCaseRef {
+  id: string; // e.g. "47c#888"
+  lecture: string; // e.g. "第 1 講 民法"
+  note: string; // 簡短摘要 ~20 字
+}
+
 interface QSeed {
   topicSlug: string;
   type: "choice" | "multi" | "essay";
@@ -77,6 +83,7 @@ interface QSeed {
   correctAnswer?: string | string[];
   explanationMd: string;
   references: { label: string; url: string }[];
+  cases?: QCaseRef[];
   difficulty: number;
   source?: string;
 }
@@ -86,7 +93,17 @@ async function upsertQuestion(topicId: string, q: QSeed) {
   const existing = await db.query.questions.findFirst({
     where: and(eq(questions.topicId, topicId), eq(questions.questionMd, q.questionMd)),
   });
-  if (existing) return existing;
+  if (existing) {
+    // 既有題：補 cases / references / explanation 升級（不動 correct）
+    const patch: Partial<typeof existing> = {};
+    if (q.cases && q.cases.length > 0) {
+      patch.casesJson = JSON.stringify(q.cases);
+    }
+    if (Object.keys(patch).length > 0) {
+      await db.update(questions).set(patch).where(eq(questions.id, existing.id));
+    }
+    return existing;
+  }
   await db.insert(questions).values({
     id: uuid(),
     topicId,
@@ -96,6 +113,7 @@ async function upsertQuestion(topicId: string, q: QSeed) {
     correctAnswerJson: q.correctAnswer ? JSON.stringify(q.correctAnswer) : null,
     explanationMd: q.explanationMd,
     referencesJson: JSON.stringify(q.references),
+    casesJson: q.cases ? JSON.stringify(q.cases) : null,
     difficulty: q.difficulty,
     source: q.source ?? null,
     status: "published",
@@ -4408,6 +4426,42 @@ async function main() {
     }
     await upsertQuestion(topic.id, s);
   }
+
+  // ---- 47c 擴充題庫整合（Phase 2）----
+  // 6 個 expansion 模組各自 export `expansion: QSeed[]`；shape 與本檔 QSeed 結構一致。
+  // 採 dynamic import 維持每個檔案獨立可單測；upsertQuestion 內部以 (topicId, questionMd) 去重，
+  // 重跑 seed 不會 duplicate。
+  const expansionModules = await Promise.all([
+    import("./seed-expansion/civil-1"),
+    import("./seed-expansion/civil-2"),
+    import("./seed-expansion/civil-3"),
+    import("./seed-expansion/criminal-1"),
+    import("./seed-expansion/criminal-2"),
+    import("./seed-expansion/criminal-3"),
+  ]);
+
+  const allTopics: Record<string, schema.Topic> = {
+    ...topicMap,
+    ...criminalTopicMap,
+  };
+
+  let expansionInserted = 0;
+  let expansionSkipped = 0;
+  for (const mod of expansionModules) {
+    for (const q of mod.expansion as QSeed[]) {
+      const topic = allTopics[q.topicSlug];
+      if (!topic) {
+        console.warn(`expansion: unknown topic slug ${q.topicSlug}, skip`);
+        expansionSkipped++;
+        continue;
+      }
+      await upsertQuestion(topic.id, q);
+      expansionInserted++;
+    }
+  }
+  console.log(
+    `expansion seeded: ${expansionInserted} questions (${expansionSkipped} skipped)`
+  );
 
   // 建一個 admin user（demo 用）
   const adminEmail = "admin@example.com";

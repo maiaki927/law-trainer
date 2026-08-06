@@ -81,17 +81,23 @@ export default async function MePage() {
     .from(savedQuestions)
     .where(eq(savedQuestions.userId, uid));
 
-  // 各章節 heat
-  const civilSubject = await db.query.subjects.findFirst({
-    where: eq(subjects.slug, "civil"),
-  });
-  const topicList = civilSubject
-    ? await db
+  // 各章節 heat — 民法 + 刑法 兩個 subjects
+  const allSubjects = await db
+    .select()
+    .from(subjects)
+    .where(eq(subjects.status, "active"))
+    .orderBy(subjects.orderIdx);
+
+  const subjectTopics = await Promise.all(
+    allSubjects.map(async (sub) => ({
+      subject: sub,
+      topics: await db
         .select()
         .from(topics)
-        .where(eq(topics.subjectId, civilSubject.id))
-        .orderBy(topics.orderIdx)
-    : [];
+        .where(eq(topics.subjectId, sub.id))
+        .orderBy(topics.orderIdx),
+    }))
+  );
 
   // 各章節：total 算全部已發布題目，answered 計入申論題（已寫過視為已答），
   // correct 只計 is_correct = 1（選擇 / 複選答對）
@@ -151,33 +157,43 @@ export default async function MePage() {
         />
       </section>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">各章節進度</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {topicList.map((t) => {
-            const s = statsMap.get(t.id);
-            const total = Number(s?.total ?? 0);
-            const ans = Number(s?.answered ?? 0);
-            const cor = Number(s?.correct ?? 0);
-            const scored = Number(s?.scored ?? 0);
-            // 正確率只算選擇 / 複選（scored 排除申論）
-            const rate = scored > 0 ? Math.round((cor / scored) * 100) : null;
-            return (
-              <Link key={t.id} href={`/subjects/civil/${t.slug}`}>
-                <Card className="transition hover:shadow-md">
-                  <CardContent className="space-y-1 p-4">
-                    <div className="font-medium">{t.nameZh}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {ans} / {total} 已答
-                      {rate !== null && <> · 正確率 {rate}%</>}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+      {subjectTopics.map(({ subject, topics: topicList }) =>
+        topicList.length === 0 ? null : (
+          <section key={subject.id}>
+            <h2 className="mb-3 text-lg font-semibold">
+              {subject.nameZh}・各章節進度
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {topicList.map((t) => {
+                const s = statsMap.get(t.id);
+                const total = Number(s?.total ?? 0);
+                const ans = Number(s?.answered ?? 0);
+                const cor = Number(s?.correct ?? 0);
+                const scored = Number(s?.scored ?? 0);
+                // 正確率只算選擇 / 複選（scored 排除申論）
+                const rate =
+                  scored > 0 ? Math.round((cor / scored) * 100) : null;
+                return (
+                  <Link
+                    key={t.id}
+                    href={`/subjects/${subject.slug}/${t.slug}`}
+                  >
+                    <Card className="transition hover:shadow-md">
+                      <CardContent className="space-y-1 p-4">
+                        <div className="font-medium">{t.nameZh}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {ans} / {total} 已答
+                          {rate !== null && <> · 正確率 {rate}%</>}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )
+      )}
     </div>
   );
 }

@@ -25,7 +25,7 @@ export default async function PracticePage({ params, searchParams }: Params) {
   const { mode = "all" } = await searchParams;
 
   const subject = await db.query.subjects.findFirst({
-    where: eq(subjects.slug, "civil"),
+    where: eq(subjects.slug, "civil-tutorial"),
   });
   if (!subject) notFound();
   const topic = await db.query.topics.findFirst({
@@ -97,7 +97,7 @@ export default async function PracticePage({ params, searchParams }: Params) {
       <div className="space-y-4">
         <h1 className="text-xl font-bold">{topic.nameZh} · 練習</h1>
         <p>此模式目前沒有題目。</p>
-        <Link href={`/subjects/civil/${topicSlug}`} className="underline">
+        <Link href={`/subjects/civil-tutorial/${topicSlug}`} className="underline">
           回章節
         </Link>
       </div>
@@ -140,8 +140,8 @@ export default async function PracticePage({ params, searchParams }: Params) {
     <PracticeRunner
       topicName={topic.nameZh}
       topicSlug={topicSlug}
-      subjectSlug="civil"
-      subjectName="民法"
+      subjectSlug="civil-tutorial"
+      subjectName="民法課輔"
       mode={mode}
       questions={payload}
       isLoggedIn={!!session?.user?.id}

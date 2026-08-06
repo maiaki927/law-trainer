@@ -1,0 +1,1 @@
+ALTER TABLE `questions` ADD `cases_json` text;
