@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   subjects,
@@ -15,14 +15,14 @@ import { PracticeRunner } from "@/components/practice-runner";
 
 interface Params {
   params: Promise<{ topic: string }>;
-  searchParams: Promise<{ mode?: string }>;
+  searchParams: Promise<{ mode?: string; type?: string }>;
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function PracticePage({ params, searchParams }: Params) {
   const { topic: topicSlug } = await params;
-  const { mode = "all" } = await searchParams;
+  const { mode = "all", type: typeParam } = await searchParams;
 
   const subject = await db.query.subjects.findFirst({
     where: eq(subjects.slug, "civil-tutorial"),
@@ -35,11 +35,25 @@ export default async function PracticePage({ params, searchParams }: Params) {
 
   const session = await auth();
 
+  // 錯題複習與收藏（wrong/saved）主人明講混類型 → 忽略 typeParam；
+  // 其他 mode 若帶 ?type=choice 則濾出 choice+multi、?type=essay 則濾出 essay。
+  const respectType = mode !== "wrong" && mode !== "saved";
+  const typeFilter =
+    respectType && typeParam === "choice"
+      ? inArray(questions.type, ["choice", "multi"])
+      : respectType && typeParam === "essay"
+        ? eq(questions.type, "essay")
+        : undefined;
+
   let qs = await db
     .select()
     .from(questions)
     .where(
-      and(eq(questions.topicId, topic.id), eq(questions.status, "published"))
+      and(
+        eq(questions.topicId, topic.id),
+        eq(questions.status, "published"),
+        ...(typeFilter ? [typeFilter] : [])
+      )
     );
 
   if (
@@ -97,7 +111,7 @@ export default async function PracticePage({ params, searchParams }: Params) {
       <div className="space-y-4">
         <h1 className="text-xl font-bold">{topic.nameZh} · 練習</h1>
         <p>此模式目前沒有題目。</p>
-        <Link href={`/subjects/civil-tutorial/${topicSlug}`} className="underline">
+        <Link href={`/subjects/civil/${topicSlug}`} className="underline">
           回章節
         </Link>
       </div>
