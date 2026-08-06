@@ -12,7 +12,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/subjects/civil" className="block">
           <Card className="h-full transition hover:shadow-md">
             <CardHeader>
@@ -30,6 +30,23 @@ export default function HomePage() {
           </Card>
         </Link>
 
+        <Link href="/subjects/civil-tutorial" className="block">
+          <Card className="h-full transition hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                民法課輔
+                <Badge variant="secondary">5 章節</Badge>
+              </CardTitle>
+              <CardDescription>
+                依課輔課程錄音整理的補充題庫，與民法正課分開練習。
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              點擊進入章節列表，可選全部 / 隨機 / 答錯複習等模式。
+            </CardContent>
+          </Card>
+        </Link>
+
         <Link href="/subjects/criminal" className="block">
           <Card className="h-full transition hover:shadow-md">
             <CardHeader>
@@ -39,6 +56,23 @@ export default function HomePage() {
               </CardTitle>
               <CardDescription>
                 基礎理論 / 犯罪論體系 / 構成要件 / 階段論 / 客觀處罰條件 / 違法性 / 錯誤論 / 有責性 / 正犯共犯 / 罪數 / 適用範圍
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              點擊進入章節列表，可選全部 / 隨機 / 答錯複習等模式。
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/subjects/criminal-tutorial" className="block">
+          <Card className="h-full transition hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                刑法課輔
+                <Badge variant="secondary">10 章節</Badge>
+              </CardTitle>
+              <CardDescription>
+                依課輔課程錄音整理的補充題庫，與刑法正課分開練習。
               </CardDescription>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
