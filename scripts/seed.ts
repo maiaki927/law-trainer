@@ -1,5 +1,5 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import { eq, and } from "drizzle-orm";
 import path from "node:path";
 import fs from "node:fs";
@@ -7,16 +7,17 @@ import { v4 as uuid } from "uuid";
 import bcrypt from "bcryptjs";
 import * as schema from "../src/lib/db/schema";
 
-const dbFile = process.env.DATABASE_URL ?? "data/dev.sqlite";
-const absPath = path.isAbsolute(dbFile)
-  ? dbFile
-  : path.join(process.cwd(), dbFile);
-fs.mkdirSync(path.dirname(absPath), { recursive: true });
+const raw = process.env.DATABASE_URL ?? "data/dev.sqlite";
+const url = raw.startsWith("libsql:") || raw.startsWith("file:")
+  ? raw
+  : (() => {
+      const abs = path.isAbsolute(raw) ? raw : path.join(process.cwd(), raw);
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      return `file:${abs}`;
+    })();
 
-const sqlite = new Database(absPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-const db = drizzle(sqlite, { schema });
+const client = createClient({ url, authToken: process.env.DATABASE_AUTH_TOKEN });
+const db = drizzle(client, { schema });
 
 const { subjects, topics, questions, users } = schema;
 
@@ -4480,7 +4481,7 @@ async function main() {
   }
 
   console.log("seed complete");
-  sqlite.close();
+  client.close();
 }
 
 main().catch((e) => {
