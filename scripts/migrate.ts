@@ -1,23 +1,34 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import { migrate } from "drizzle-orm/libsql/migrator";
 import path from "node:path";
 import fs from "node:fs";
 
-const dbFile = process.env.DATABASE_URL ?? "data/dev.sqlite";
-const absPath = path.isAbsolute(dbFile)
-  ? dbFile
-  : path.join(process.cwd(), dbFile);
+// 同 src/lib/db/client.ts 的 URL normalisation：bare path → file: URL、
+// file:/ libsql:// 原封不動。
+const raw = process.env.DATABASE_URL ?? "data/dev.sqlite";
+const url = raw.startsWith("libsql:") || raw.startsWith("file:")
+  ? raw
+  : (() => {
+      const abs = path.isAbsolute(raw) ? raw : path.join(process.cwd(), raw);
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      return `file:${abs}`;
+    })();
 
-fs.mkdirSync(path.dirname(absPath), { recursive: true });
+async function main() {
+  const client = createClient({
+    url,
+    authToken: process.env.DATABASE_AUTH_TOKEN,
+  });
+  const db = drizzle(client);
 
-const sqlite = new Database(absPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+  await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
 
-const db = drizzle(sqlite);
+  console.log("migration complete");
+  client.close();
+}
 
-migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
-
-console.log("migration complete");
-sqlite.close();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
