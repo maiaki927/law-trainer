@@ -14,12 +14,19 @@ export async function Header() {
         <nav className="flex items-center gap-2">
           {session?.user ? (
             <>
-              <Link href="/me" className="text-sm hover:underline">
+              <span className="hidden text-sm text-muted-foreground sm:inline">
                 {session.user.displayName ?? session.user.name}
+              </span>
+              <Link href="/me">
+                <Button variant="outline" size="sm">
+                  我的頁面
+                </Button>
               </Link>
               {session.user.role === "admin" && (
-                <Link href="/admin/feedback" className="text-sm hover:underline">
-                  管理
+                <Link href="/admin/feedback">
+                  <Button variant="ghost" size="sm">
+                    管理
+                  </Button>
                 </Link>
               )}
               <form
